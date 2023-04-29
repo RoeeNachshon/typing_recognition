@@ -112,13 +112,13 @@ def create_column_str(length):
         columns.append("RPD_" + str(i))
     return columns
 
-#TODO: you  suck
+
 def get_user_initial_data(turns):
     new_data_frame = pd.DataFrame()
     while len(new_data_frame) < turns:
         print("Write!")
         key_press_time, key_release_time = create_timing_lists()
-        _ = keyboard.read_event()  # clean the remaining key
+        keyboard.read_event()  # clean the remaining key
         HD_list, PPD_list, RPD_list = make_lists(key_press_time, key_release_time)
         press_list = create_press_timestamps_lst(PPD_list)
         data_frame = create_table_mat(HD_list, PPD_list, RPD_list, press_list)
