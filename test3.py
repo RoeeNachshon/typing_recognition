@@ -1,19 +1,26 @@
-from multiprocessing import Process, Value, Array
+from multiprocessing import Process, Manager
+import pandas as pd
 
 
-def f(n, a):
-    n.value = 3.1415927
-    for i in range(len(a)):
-        a[i] = -a[i]
+def worker(n):
+    dataframe = pd.DataFrame()
+    dataframe["bye"]=1
+    print(n.do,"------------")
+
+
+def print1(x):
+    print(x.do,"**********")
 
 
 if __name__ == '__main__':
-    num = Value('d', 0.0)
-    arr = Array('i', range(10))
-
-    p = Process(target=f, args=(num, arr))
+    mgr = Manager()
+    ns = mgr.Namespace()
+    my_dataframe = pd.DataFrame()
+    my_dataframe["hi"]=1
+    ns.do = my_dataframe
+    p = Process(target=worker, args=(ns, ))
+    r = Process(target=print1, args=(ns,))
+    r.start()
     p.start()
+    r.join()
     p.join()
-
-    print(num.value)
-    print(arr[:])
