@@ -1,7 +1,5 @@
 import time
 from pynput import keyboard
-import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
 import keyboard
 import numpy as np
@@ -91,6 +89,7 @@ def arrange_index_df(df, key_list):
     sorted_key_list = sort_key_list(key_list)
     df['keys'] = sorted_key_list
     df = df.reset_index().set_index('keys')
+    df = df.drop(columns=['index'])
     return df
 
 
@@ -105,9 +104,7 @@ def get_user_initial_data(turns):
         data_frame = create_table_mat(HD_list, PPD_list, RPD_list, press_list)
         data_frame = create_bins(data_frame)
         data_frame = arrange_index_df(data_frame, key_list)
-        create_bucket_graph(data_frame)
-        plt.show()
-        print("Yap!", data_frame)
+        print("Yap!", "\n", data_frame)
     return new_data_frame
 
 
