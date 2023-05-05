@@ -25,7 +25,7 @@ def create_id_list(num_of_tests):
 
 def fit(trainDF_User_AllSampleProps):
     print(trainDF_User_AllSampleProps, "training...")
-    trainX_allSamples = trainDF_User_AllSampleProps.reset_index().drop(columns=['user'])
+    trainX_allSamples = trainDF_User_AllSampleProps.reset_index().drop(columns=['keys'])
     trainY_allSamples = trainDF_User_AllSampleProps.index
 
     xgb1 = XGBClassifier(

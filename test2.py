@@ -16,7 +16,7 @@ def learn_user(lst, ns):
     num_of_tests = lst[0]
     need_create_db = lst[1]
     print("starting RECORDING", num_of_tests)
-    new_user_data = user.get_user_initial_data(num_of_tests)
+    new_user_data = user.get_user_initial_data()
     frames = [ns.ud, new_user_data]
     ns.ud = pd.concat(frames)
     if need_create_db:

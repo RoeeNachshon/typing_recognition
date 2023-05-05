@@ -93,20 +93,18 @@ def arrange_index_df(df, key_list):
     return df
 
 
-def get_user_initial_data(turns):
-    new_data_frame = pd.DataFrame()
-    while len(new_data_frame) < turns:
-        print("Write!")
-        key_press_time, key_release_time, key_list = create_timing_lists()
-        keyboard.read_event()  # clean the remaining key
-        HD_list, PPD_list, RPD_list = make_lists(key_press_time, key_release_time)
-        press_list = create_press_timestamps_lst(PPD_list)
-        data_frame = create_table_mat(HD_list, PPD_list, RPD_list, press_list)
-        data_frame = create_bins(data_frame)
-        data_frame = arrange_index_df(data_frame, key_list)
-        print("Yap!", "\n", data_frame)
-    return new_data_frame
+def get_user_initial_data():
+    print("Write!")
+    key_press_time, key_release_time, key_list = create_timing_lists()
+    keyboard.read_event()  # clean the remaining key
+    HD_list, PPD_list, RPD_list = make_lists(key_press_time, key_release_time)
+    press_list = create_press_timestamps_lst(PPD_list)
+    data_frame = create_table_mat(HD_list, PPD_list, RPD_list, press_list)
+    data_frame = create_bins(data_frame)
+    data_frame = arrange_index_df(data_frame, key_list)
+    print("\n", data_frame)
+    return data_frame
 
 
 if __name__ == '__main__':
-    print(get_user_initial_data(1))
+    print(get_user_initial_data())
