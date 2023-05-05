@@ -30,11 +30,18 @@ def make_lists(key_press_time, key_release_time):
         HD_list.append(round(key_release_time[i] - key_press_time[i], 3) * 1000)
         RPD_list[i] = round(key_press_time[i] - RPD_list[-1], 3) * 1000
         RPD_list.append(key_press_time[i])
-        PPD_list.append(float(RPD_list[len(RPD_list) - 2]) + float(HD_list[-1]))
+        PPD_list.append(float(RPD_list[len(RPD_list) - 2]) - float(HD_list[-1]))
     PPD_list[0] = -1
     RPD_list[0] = -1
     return HD_list, PPD_list, RPD_list[:-1]
 
+def sort_key_list(key_list):
+    new_list = []
+    for i in range(len(key_list)):
+        if key_list[i][-1] == "r":
+            new_list.append(key_list[i].split("_")[0])
+    return new_list
 
 ls1, ls2, ls3 = create_timing_lists()
-print(make_lists(ls1, ls2), ls3)
+new = sort_key_list(ls3)
+print(make_lists(ls1, ls2), new)
