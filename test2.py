@@ -27,9 +27,10 @@ def learn_user(lst, ns):
 
 def renew_db(num_of_tests, ns):
     data = pickle.load(open('db.pkl', 'rb'))
-    id_lst = train_ai.create_id_list((len(data.index)-880)+num_of_tests)
     frames = [data, ns.ud]
     data = pd.concat(frames)
+    id_lst = train_ai.create_id_list((len(data.index) - 880) + num_of_tests)
+    print("id lst len - ", len(id_lst), " len of db - ", len(data.index))
     data['user'] = id_lst
     data = data.reset_index().set_index('user')
     ns.db = data.drop(columns=['index'])
@@ -45,6 +46,7 @@ def create_db(num_of_tests, ns):
     data = data.reset_index().set_index('user')
     ns.db = data.drop(columns=['index'])
     pickle.dump(ns.db, open('db.pkl', 'wb'))
+
 
 def fit_ai(ns):
     # fits the ai with existing db
@@ -73,7 +75,7 @@ def accuracy_check(predictions, wanted_acc_value):
 
 
 def init_ai(ns):
-    learn_user([8, True],ns)
+    learn_user([8, True], ns)
     # fit_ai()
     #  for the first few runs (the missing sta ing 8 us)
 
@@ -100,9 +102,8 @@ def threads(num_of_tests, ns):
 
 if __name__ == '__main__':
     mgr = Manager()
-    ns = mgr.Namespace()
-    ns.ai = pickled_model
-    ns.ud = user_data
-    ns.db = db_for_train
-
-    threads(1, ns)
+    name_space = mgr.Namespace()
+    name_space.ai = pickled_model
+    name_space.ud = user_data
+    name_space.db = db_for_train
+    threads(2, name_space)
