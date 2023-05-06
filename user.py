@@ -90,6 +90,7 @@ def arrange_index_df(df, key_list):
     df['keys'] = sorted_key_list
     df = df.reset_index().set_index('keys')
     df = df.drop(columns=['index'])
+    df = df.drop(columns=['press-'])
     return df
 
 
@@ -100,7 +101,7 @@ def get_user_initial_data():
     HD_list, PPD_list, RPD_list = make_lists(key_press_time, key_release_time)
     press_list = create_press_timestamps_lst(PPD_list)
     data_frame = create_table_mat(HD_list, PPD_list, RPD_list, press_list)
-    data_frame = create_bins(data_frame)
+    #data_frame = create_bins(data_frame)
     data_frame = arrange_index_df(data_frame, key_list)
     print("\n", data_frame)
     return data_frame

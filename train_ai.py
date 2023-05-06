@@ -65,5 +65,3 @@ def fit(trainDF_User_AllSampleProps):
     print('Average Accuracy:', sum(accs) / len(accs))
     pickle.dump(gsearch2b, open('ai.pkl', 'wb'))
     print("YAYYYY!!!!!!")
-
-# plt.show()
