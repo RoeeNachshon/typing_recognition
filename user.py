@@ -3,35 +3,46 @@ from pynput import keyboard
 import pandas as pd
 import keyboard
 import numpy as np
-
+import pickle
 
 def create_timing_lists():
     key_press_lst = []
     key_release_lst = []
     key_list = []
-    while len(key_press_lst) < 50:
+    for i in range(110):
         event = keyboard.read_event()
-        if event.event_type == "down":
+        if event.event_type == "down" and len(key_press_lst) < 50:
             key_press_lst.append(event.time)
             key_list.append(event.name + "_p")
-        if event.event_type == "up":
+        if event.event_type == "up" and len(key_release_lst) < 50:
             key_release_lst.append(event.time)
             key_list.append(event.name + "_r")
     return key_press_lst, key_release_lst, key_list
 
 
-def make_lists(key_press_time, key_release_time):
-    PPD_list = []
-    HD_list = []
-    RPD_list = [key_press_time[1]]
-    for i in range(len(key_release_time)):
-        HD_list.append(round(key_release_time[i] - key_press_time[i], 3) * 1000)
-        RPD_list[i] = round(key_press_time[i] - RPD_list[-1], 3) * 1000
-        RPD_list.append(key_press_time[i])
-        PPD_list.append(float(RPD_list[len(RPD_list) - 2]) + float(HD_list[-1]))
-    PPD_list[0] = -1
-    RPD_list[0] = -1
-    return HD_list, PPD_list, RPD_list[:-1]
+def calculate_key_durations(press_times, release_times):
+    key_hold_durations = []
+    time_between_keys = []
+    time_between_release_press = []
+
+    # Check that both lists have the same length
+    if len(press_times) != len(release_times):
+        print("Error: press_times and release_times must have the same length.", len(release_times), len(press_times))
+        return [], [], []
+
+    last_release_time = 0
+    for i in range(len(press_times)):
+        press_time = press_times[i]
+        release_time = release_times[i]
+        key_hold_duration = round((release_time - press_time), 3) * 1000
+        key_hold_durations.append(key_hold_duration)
+
+        if i > 0:
+            time_between_keys.append(round((press_time - press_times[i-1]), 3) * 1000)
+        if i < len(press_times) - 1:
+            time_between_release_press.append(round((press_times[i+1] - release_time) , 3)* 1000)
+
+    return key_hold_durations, time_between_keys, time_between_release_press
 
 
 def create_press_timestamps_lst(PPD_list):
@@ -82,11 +93,13 @@ def sort_key_list(key_list):
     for i in range(len(key_list)):
         if key_list[i][-1] == "r":
             new_list.append(key_list[i].split("_")[0])
-    return new_list
+    return new_list[:-1]
 
 
 def arrange_index_df(df, key_list):
+    print(key_list)
     sorted_key_list = sort_key_list(key_list)
+    print(sorted_key_list)
     df['keys'] = sorted_key_list
     df = df.reset_index().set_index('keys')
     df = df.drop(columns=['index'])
@@ -98,14 +111,22 @@ def get_user_initial_data():
     print("Write!")
     key_press_time, key_release_time, key_list = create_timing_lists()
     keyboard.read_event()  # clean the remaining key
-    HD_list, PPD_list, RPD_list = make_lists(key_press_time, key_release_time)
+    HD_list, PPD_list, RPD_list = calculate_key_durations(key_press_time, key_release_time)
     press_list = create_press_timestamps_lst(PPD_list)
     data_frame = create_table_mat(HD_list, PPD_list, RPD_list, press_list)
     #data_frame = create_bins(data_frame)
     data_frame = arrange_index_df(data_frame, key_list)
-    print("\n", data_frame)
     return data_frame
 
 
 if __name__ == '__main__':
-    print(get_user_initial_data())
+    while 1:
+        df = get_user_initial_data()
+        try:
+            old_data = pickle.load(open('db.pkl', 'rb'))
+            frames = [old_data, df]
+            df = pd.concat(frames)
+            pickle.dump(df, open('db.pkl', 'wb'))
+        except FileNotFoundError:
+            pickle.dump(df, open('db.pkl', 'wb'))
+
