@@ -9,43 +9,20 @@ import numpy as np
 
 pickled_model = pickle.load(open('ai.pkl', 'rb'))
 user_data = pd.DataFrame()
-db_for_train = pd.DataFrame()
 
 
-def learn_user(lst, ns):
-    num_of_tests = lst[0]
-    need_create_db = lst[1]
-    print("starting RECORDING", num_of_tests)
-    new_user_data = user.get_user_initial_data()
-    frames = [ns.ud, new_user_data]
-    ns.ud = pd.concat(frames)
-    if need_create_db:
-        create_db(num_of_tests, ns)
-    else:
-        renew_db(num_of_tests, ns)
-
-
-def renew_db(num_of_tests, ns):
-    data = pickle.load(open('db.pkl', 'rb'))
-    frames = [data, ns.ud]
-    data = pd.concat(frames)
-    id_lst = train_ai.create_id_list((len(data.index) - 880) + num_of_tests)
-    print("id lst len - ", len(id_lst), " len of db - ", len(data.index))
-    data['user'] = id_lst
-    data = data.reset_index().set_index('user')
-    ns.db = data.drop(columns=['index'])
-    pickle.dump(ns.db, open('db.pkl', 'wb'))
-
-
-def create_db(num_of_tests, ns):
-    data = data_base.get_DB()
-    id_lst = train_ai.create_id_list(num_of_tests)
-    frames = [data, ns.ud]
-    data = pd.concat(frames)
-    data['user'] = id_lst
-    data = data.reset_index().set_index('user')
-    ns.db = data.drop(columns=['index'])
-    pickle.dump(ns.db, open('db.pkl', 'wb'))
+def learn_user(ns):
+    while 1:
+        df = get_user_initial_data()
+        ns.ud = df
+        try:
+            old_data = pickle.load(open('db.pkl', 'rb'))
+            frames = [old_data, df]
+            df = pd.concat(frames)
+            pickle.dump(df, open('db.pkl', 'wb'))
+        except FileNotFoundError:
+            pickle.dump(df, open('db.pkl', 'wb'))
+        ns.db = df
 
 
 def fit_ai(ns):
@@ -74,21 +51,13 @@ def accuracy_check(predictions, wanted_acc_value):
     # bellow a number is fail
 
 
-def init_ai(ns):
-    learn_user([8, True], ns)
-    # fit_ai()
-    #  for the first few runs (the missing sta ing 8 us)
-
-
 def turn_off():
     # ctypes.windll.user32.LockWorkStation()
     print("Turned OFF!")
 
 
-def threads(num_of_tests, ns):
-    init_ai(ns)
-    print("end of innit")
-    record_user_data_thread = Process(target=learn_user, args=([num_of_tests, False], ns))
+def threads(ns):
+    record_user_data_thread = Process(target=learn_user, args=(ns,))
     test_ai_thread = Process(target=test_ai, args=(ns,))
     fit_ai_thread = Process(target=fit_ai, args=(ns,))
     record_user_data_thread.start()
@@ -106,4 +75,4 @@ if __name__ == '__main__':
     name_space.ai = pickled_model
     name_space.ud = user_data
     name_space.db = db_for_train
-    threads(2, name_space)
+    threads(name_space)

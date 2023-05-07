@@ -5,16 +5,17 @@ import keyboard
 import numpy as np
 import pickle
 
+
 def create_timing_lists():
     key_press_lst = []
     key_release_lst = []
     key_list = []
-    for i in range(110):
+    for i in range(2100):
         event = keyboard.read_event()
-        if event.event_type == "down" and len(key_press_lst) < 50:
+        if event.event_type == "down" and len(key_press_lst) < 1000:
             key_press_lst.append(event.time)
             key_list.append(event.name + "_p")
-        if event.event_type == "up" and len(key_release_lst) < 50:
+        if event.event_type == "up" and len(key_release_lst) < 1000:
             key_release_lst.append(event.time)
             key_list.append(event.name + "_r")
     return key_press_lst, key_release_lst, key_list
@@ -30,7 +31,6 @@ def calculate_key_durations(press_times, release_times):
         print("Error: press_times and release_times must have the same length.", len(release_times), len(press_times))
         return [], [], []
 
-    last_release_time = 0
     for i in range(len(press_times)):
         press_time = press_times[i]
         release_time = release_times[i]
@@ -38,9 +38,9 @@ def calculate_key_durations(press_times, release_times):
         key_hold_durations.append(key_hold_duration)
 
         if i > 0:
-            time_between_keys.append(round((press_time - press_times[i-1]), 3) * 1000)
+            time_between_keys.append(round((press_time - press_times[i - 1]), 3) * 1000)
         if i < len(press_times) - 1:
-            time_between_release_press.append(round((press_times[i+1] - release_time) , 3)* 1000)
+            time_between_release_press.append(round((press_times[i + 1] - release_time), 3) * 1000)
 
     return key_hold_durations, time_between_keys, time_between_release_press
 
@@ -114,19 +114,24 @@ def get_user_initial_data():
     HD_list, PPD_list, RPD_list = calculate_key_durations(key_press_time, key_release_time)
     press_list = create_press_timestamps_lst(PPD_list)
     data_frame = create_table_mat(HD_list, PPD_list, RPD_list, press_list)
-    #data_frame = create_bins(data_frame)
+    # data_frame = create_bins(data_frame)
     data_frame = arrange_index_df(data_frame, key_list)
     return data_frame
 
 
 if __name__ == '__main__':
-    while 1:
+    data = get_user_initial_data()
+    pickle.dump(data, open('db.pkl', 'wb'))
+    '''
+        while 1:
         df = get_user_initial_data()
-        try:
-            old_data = pickle.load(open('db.pkl', 'rb'))
-            frames = [old_data, df]
-            df = pd.concat(frames)
-            pickle.dump(df, open('db.pkl', 'wb'))
-        except FileNotFoundError:
-            pickle.dump(df, open('db.pkl', 'wb'))
+            try:
+                old_data = pickle.load(open('db.pkl', 'rb'))
+                frames = [old_data, df]
+                df = pd.concat(frames)
+                pickle.dump(df, open('db.pkl', 'wb'))
+            except FileNotFoundError:
+                pickle.dump(df, open('db.pkl', 'wb'))
 
+
+    '''

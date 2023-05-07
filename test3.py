@@ -1,19 +1,42 @@
-import numpy as np
-from sklearn.svm import OneClassSVM
 import pickle
-import user
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.svm import OneClassSVM
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+from sklearn.ensemble import BaggingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+import numpy as np
+
+# load the data from a CSV file
+data = pickle.load(open('db.pkl', 'rb'))
+
+X = np.random.rand(100, 10)
+y = np.random.randint(0, 2, 100)
+Z= data.index
+'''
+X= data.iloc[:, 0:3]
+
+'''
 
 
-# Load genuine keystroke data
-genuine_data = pickle.load(open('db.pkl', 'rb'))
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=1, stratify=y)
 
-# Train the one-class SVM model
-model = pickle.load(open('ai.pkl', 'rb'))
 
-# Test the model on new data
-new_data = user.get_user_initial_data()
-predictions = model.predict(new_data)
+# Initialize the classifiers
+tree_clf = DecisionTreeClassifier()
+knn_clf = KNeighborsClassifier()
+svm_clf = SVC()
 
-# Print the predictions (genuine=1, outlier=-1)
-print(predictions)
+svm_clf.fit(X,y)
+knn_clf.fit(X,y)
+tree_clf.fit(X,y)
+# Create an ensemble of classifiers using bagging
+ensemble_clf = BaggingClassifier(base_estimator=[DecisionTreeClassifier(), KNeighborsClassifier(), SVC()])
 
+# Fit the ensemble model on the training data
+ensemble_clf.fit(X,y)
+
+print("ss")
