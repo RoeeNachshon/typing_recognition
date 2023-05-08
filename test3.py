@@ -13,30 +13,31 @@ import numpy as np
 # load the data from a CSV file
 data = pickle.load(open('db.pkl', 'rb'))
 
-X = np.random.rand(100, 10)
-y = np.random.randint(0, 2, 100)
-Z= data.index
-'''
-X= data.iloc[:, 0:3]
+X_train, X_test, = train_test_split(data, test_size=0.25, random_state=1)
 
-'''
+clf = OneClassSVM(kernel='linear', nu=0.245)
+clf.fit(X_train)
 
+# Predict the labels of the test set using the trained One-Class SVM
+y_pred = clf.predict(X_test)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=1, stratify=y)
+# Print the predicted labels and the actual labels of the test set
+print("Predicted labels:", y_pred)
 
+# evaluate the accuracy of the model
+accuracy = accuracy_score([1] * len(X_test), y_pred)
+print('Accuracy:', accuracy)
 
-# Initialize the classifiers
-tree_clf = DecisionTreeClassifier()
-knn_clf = KNeighborsClassifier()
-svm_clf = SVC()
+print('*************************************************************************************')
 
-svm_clf.fit(X,y)
-knn_clf.fit(X,y)
-tree_clf.fit(X,y)
-# Create an ensemble of classifiers using bagging
-ensemble_clf = BaggingClassifier(base_estimator=[DecisionTreeClassifier(), KNeighborsClassifier(), SVC()])
+# load the data from a CSV file
+testData = pickle.load(open('oded.pkl', 'rb'))
+# Predict the labels of the test set using the trained One-Class SVM
+z_pred = clf.predict(testData)
 
-# Fit the ensemble model on the training data
-ensemble_clf.fit(X,y)
+# Print the predicted labels and the actual labels of the test set
+print("Predicted labels:", z_pred)
 
-print("ss")
+# evaluate the accuracy of the model
+accuracy = accuracy_score([1] * len(testData), z_pred)
+print('Accuracy:', accuracy)

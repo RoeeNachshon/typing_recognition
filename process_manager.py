@@ -1,7 +1,6 @@
 import pickle
 import pandas as pd
 import user
-import data_base
 import train_ai
 import ctypes
 from multiprocessing import Process, Manager
@@ -9,6 +8,7 @@ import numpy as np
 
 pickled_model = pickle.load(open('ai.pkl', 'rb'))
 user_data = pd.DataFrame()
+accuracy = 0
 
 
 def learn_user(ns):
@@ -28,50 +28,48 @@ def learn_user(ns):
 def fit_ai(ns):
     # fits the ai with existing db
     print("starting FITTING")
-    train_ai.fit(ns.db)
+    ns.acc = train_ai.train(ns.db)
     ns.ai = pickle.load(open('ai.pkl', 'rb'))
 
 
 def test_ai(ns):
     print("starting TESTING", ns.ud)
-    accuracy_value = 0.7
-    predictions = ns.ai.best_estimator_.predict(ns.ud)
-    print(predictions, "**********************************")
-    is_above_accuracy_value = accuracy_check(predictions, accuracy_value)
+    accuracy_value = 0.6
+    is_above_accuracy_value = accuracy_check(accuracy_value, ns)
     if not is_above_accuracy_value:
         turn_off()
     # predict -> acc_check
 
 
-def accuracy_check(predictions, wanted_acc_value):
-    count_of_correct_predictions = np.count_nonzero(predictions == 110)
-    if count_of_correct_predictions / len(predictions) < wanted_acc_value:
+def accuracy_check(wanted_acc_value, ns):
+    if ns.acc < wanted_acc_value:
         return False
     return True
     # bellow a number is fail
 
 
 def turn_off():
-    # ctypes.windll.user32.LockWorkStation()
+    ctypes.windll.user32.LockWorkStation()
     print("Turned OFF!")
 
 
 def threads(ns):
-    record_user_data_thread = Process(target=learn_user, args=(ns,))
-    test_ai_thread = Process(target=test_ai, args=(ns,))
-    fit_ai_thread = Process(target=fit_ai, args=(ns,))
-    record_user_data_thread.start()
-    test_ai_thread.start()
-    fit_ai_thread.start()
-    record_user_data_thread.join()
-    test_ai_thread.join()
-    fit_ai_thread.join()
+    record_user_data_process = Process(target=learn_user, args=(ns,))
+    test_ai_process = Process(target=test_ai, args=(ns,))
+    fit_ai_process = Process(target=fit_ai, args=(ns,))
+    record_user_data_process.start()
+    test_ai_process.start()
+    fit_ai_process.start()
+    record_user_data_process.join()
+    test_ai_process.join()
+    fit_ai_process.join()
     # thread for - fitting, testing+acc_check, recording user
 
 
 if __name__ == '__main__':
     mgr = Manager()
     name_space = mgr.Namespace()
+    name_space.acc = accuracy
     name_space.ai = pickled_model
     name_space.ud = user_data
     name_space.db = db_for_train

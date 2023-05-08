@@ -10,12 +10,12 @@ def create_timing_lists():
     key_press_lst = []
     key_release_lst = []
     key_list = []
-    for i in range(2100):
+    for i in range(420):
         event = keyboard.read_event()
-        if event.event_type == "down" and len(key_press_lst) < 1000:
+        if event.event_type == "down" and len(key_press_lst) < 200:
             key_press_lst.append(event.time)
             key_list.append(event.name + "_p")
-        if event.event_type == "up" and len(key_release_lst) < 1000:
+        if event.event_type == "up" and len(key_release_lst) < 200:
             key_release_lst.append(event.time)
             key_list.append(event.name + "_r")
     return key_press_lst, key_release_lst, key_list
@@ -114,14 +114,13 @@ def get_user_initial_data():
     HD_list, PPD_list, RPD_list = calculate_key_durations(key_press_time, key_release_time)
     press_list = create_press_timestamps_lst(PPD_list)
     data_frame = create_table_mat(HD_list, PPD_list, RPD_list, press_list)
-    # data_frame = create_bins(data_frame)
     data_frame = arrange_index_df(data_frame, key_list)
     return data_frame
 
 
 if __name__ == '__main__':
     data = get_user_initial_data()
-    pickle.dump(data, open('db.pkl', 'wb'))
+    pickle.dump(data, open('oded.pkl', 'wb'))
     '''
         while 1:
         df = get_user_initial_data()

@@ -5,7 +5,7 @@ import user
 import pickle
 
 def init():
-    df = user.get_user_initial_data()
+    df = pickle.load(open('db.pkl', 'rb'))
     trainX_allSamples = df.reset_index().drop(columns=['keys'])
     trainY_allSamples = df.index
     train(trainX_allSamples, trainY_allSamples)
@@ -16,7 +16,7 @@ def train(X, y):
 
     # Create an SVM classifier with a linear kernel
     clf = svm.SVC(kernel='linear')
-
+    print("fitting....")
     # Train the classifier on the training data
     clf.fit(X_train, y_train)
 
