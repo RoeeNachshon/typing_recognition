@@ -115,20 +115,3 @@ def get_user_initial_data():
     data_frame = arrange_index_df(data_frame, key_list)
     return data_frame
 
-
-if __name__ == '__main__':
-    data = get_user_initial_data()
-    pickle.dump(data, open('oded.pkl', 'wb'))
-    '''
-        while 1:
-        df = get_user_initial_data()
-            try:
-                old_data = pickle.load(open('db.pkl', 'rb'))
-                frames = [old_data, df]
-                df = pd.concat(frames)
-                pickle.dump(df, open('db.pkl', 'wb'))
-            except FileNotFoundError:
-                pickle.dump(df, open('db.pkl', 'wb'))
-
-
-    '''

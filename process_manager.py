@@ -6,7 +6,6 @@ import ctypes
 from multiprocessing import Process, Manager
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-import multiprocessing
 
 pickled_model = pickle.load(open('ai.pkl', 'rb'))
 data_base = pickle.load(open('db.pkl', 'rb'))
@@ -22,10 +21,12 @@ def learn_user(ns):
             old_data = pickle.load(open('db.pkl', 'rb'))
             frames = [old_data, df]
             ns.db = pd.concat(frames)
-            # pickle.dump(ns.db, open('db.pkl', 'wb'))
-            # print("Renewed!")
+            if not ns.ud.empty:
+                pickle.dump(ns.db, open('db.pkl', 'wb'))
+                print("Renewed!")
         except FileNotFoundError:
             pickle.dump(df, open('db.pkl', 'wb'))
+            fit_ai(ns)
 
 
 def fit_ai(ns):
@@ -43,11 +44,10 @@ def test_ai(ns):
         if ctypes.windll.user32.GetForegroundWindow() != 0:  # while not on lockscreen
             accuracy_value = 0.6
             if not ns.ud.empty:
-                print("here")
                 acc = get_accuracy(ns)
                 is_above_accuracy_value = accuracy_check(accuracy_value, acc)
                 if not is_above_accuracy_value:
-                    turn_off()
+                    turn_off(ns)
                 else:
                     process.start()
                     process.join()
@@ -69,7 +69,7 @@ def accuracy_check(wanted_acc_value, acc):
     # bellow a number is fail
 
 
-def turn_off():
+def turn_off(ns):
     ns.ud = pd.DataFrame()
     ctypes.windll.user32.LockWorkStation()
     print("Turned OFF!")
