@@ -1,4 +1,5 @@
 import pickle
 
 df = pickle.load(open("db.pkl", "rb"))
-print(df)
+df = df[:-50]
+pickle.dump(df, open("db.pkl","wb"))

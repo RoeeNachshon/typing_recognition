@@ -48,8 +48,11 @@ def test_ai(ns):
                 if not is_above_accuracy_value:
                     turn_off(ns)
                 else:
-                    process.start()
-                    process.join()
+                    try:
+                        process.start()
+                        process.join()
+                    except AssertionError:
+                        pass
             # predict -> acc_check
 
 
@@ -57,12 +60,11 @@ def get_accuracy(ns):
     X_train, X_test, = train_test_split(ns.ud, test_size=0.5, random_state=1)
     y_predict = ns.ai.predict(X_test)
     acc = accuracy_score([1] * len(X_test), y_predict)
-    print(acc)
     return acc
 
 
 def accuracy_check(wanted_acc_value, acc):
-    if acc < wanted_acc_value:
+    if acc <= wanted_acc_value:
         return False
     return True
     # bellow a number is fail
@@ -71,7 +73,15 @@ def accuracy_check(wanted_acc_value, acc):
 def turn_off(ns):
     ns.ud = pd.DataFrame()
     ctypes.windll.user32.LockWorkStation()
+    cut50(ns)
     print("Turned OFF!")
+
+
+def cut50(ns):
+    df = pickle.load(open("db.pkl", "rb"))
+    df = df[:-50]
+    ns.db = df
+    pickle.dump(df, open("db.pkl", "wb"))
 
 
 def threads(ns):
