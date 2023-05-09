@@ -7,7 +7,7 @@ from multiprocessing import Process, Manager
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
-pickled_model = pickle.load(open('ai.pkl', 'rb'))
+pickled_model = pickle.load(open('ai.pkl', 'rb'))  # what happens on first?
 data_base = pickle.load(open('db.pkl', 'rb'))
 user_data = pd.DataFrame()
 
@@ -32,9 +32,8 @@ def learn_user(ns):
 def fit_ai(ns):
     # fits the ai with existing db
     print("starting FITTING")
-    while 1:
-        train_ai.train(ns.db)
-        ns.ai = pickle.load(open('ai.pkl', 'rb'))
+    train_ai.train(ns.db)
+    ns.ai = pickle.load(open('ai.pkl', 'rb'))
 
 
 def test_ai(ns):
@@ -56,8 +55,8 @@ def test_ai(ns):
 
 def get_accuracy(ns):
     X_train, X_test, = train_test_split(ns.ud, test_size=0.5, random_state=1)
-    y_pred = ns.ai.predict(X_test)
-    acc = accuracy_score([1] * len(X_test), y_pred)
+    y_predict = ns.ai.predict(X_test)
+    acc = accuracy_score([1] * len(X_test), y_predict)
     print(acc)
     return acc
 

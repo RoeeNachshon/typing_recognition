@@ -1,9 +1,7 @@
-import time
 from pynput import keyboard
 import pandas as pd
 import keyboard
 import numpy as np
-import pickle
 
 
 def create_timing_lists():
