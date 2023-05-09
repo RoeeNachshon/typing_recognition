@@ -10,12 +10,12 @@ def create_timing_lists():
     key_press_lst = []
     key_release_lst = []
     key_list = []
-    for i in range(420):
+    for i in range(110):
         event = keyboard.read_event()
-        if event.event_type == "down" and len(key_press_lst) < 200:
+        if event.event_type == "down" and len(key_press_lst) < 50:
             key_press_lst.append(event.time)
             key_list.append(event.name + "_p")
-        if event.event_type == "up" and len(key_release_lst) < 200:
+        if event.event_type == "up" and len(key_release_lst) < 50:
             key_release_lst.append(event.time)
             key_list.append(event.name + "_r")
     return key_press_lst, key_release_lst, key_list
@@ -97,9 +97,7 @@ def sort_key_list(key_list):
 
 
 def arrange_index_df(df, key_list):
-    print(key_list)
     sorted_key_list = sort_key_list(key_list)
-    print(sorted_key_list)
     df['keys'] = sorted_key_list
     df = df.reset_index().set_index('keys')
     df = df.drop(columns=['index'])

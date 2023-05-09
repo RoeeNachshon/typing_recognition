@@ -1,34 +1,16 @@
-from sklearn import svm
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-import user
-import pickle
+import ctypes
+import time
 
-def init():
-    df = pickle.load(open('db.pkl', 'rb'))
-    trainX_allSamples = df.reset_index().drop(columns=['keys'])
-    trainY_allSamples = df.index
-    train(trainX_allSamples, trainY_allSamples)
+def print_count():
+    ctypes.windll.user32.LockWorkStation()
+    while 1:
+        if ctypes.windll.user32.GetForegroundWindow() != 0:  # while not on lockscreen.
+            time.sleep(1)
+            print(ctypes.windll.user32.GetForegroundWindow())
+            # predict -> acc_check
+        else:
+            time.sleep(2)
+            print(ctypes.windll.user32.GetForegroundWindow())
 
-def train(X, y):
-    # Split the data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-    # Create an SVM classifier with a linear kernel
-    clf = svm.SVC(kernel='linear')
-    print("fitting....")
-    # Train the classifier on the training data
-    clf.fit(X_train, y_train)
-
-    # Use the classifier to make predictions on the test data
-    y_pred = clf.predict(X_test)
-
-    # Compute the accuracy of the classifier
-    accuracy = accuracy_score(y_test, y_pred)
-
-    print("Accuracy:", accuracy)
-    pickle.dump(clf, open('ai.pkl', 'wb'))
-    print("dumped!")
-
-
-init()
+if __name__ == '__main__':
+    print_count()
