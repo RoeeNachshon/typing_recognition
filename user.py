@@ -4,6 +4,11 @@ import keyboard
 
 
 def create_timing_lists(wanted_char_count):
+    """
+    Creates two lists of timings (press and release) and one of keys.
+    :param wanted_char_count: The wanted amount of chars to be measured
+    :return: Lists of press times, release times, and keys names
+    """
     key_press_lst = []
     key_release_lst = []
     key_list = []
@@ -18,6 +23,12 @@ def create_timing_lists(wanted_char_count):
 
 
 def calculate_key_durations(press_times, release_times):
+    """
+    Calculates the times durations keyboard of events into three lists.
+    :param press_times: A list of time of the keys press times
+    :param release_times: A list of time of the keys release times
+    :return: Lists of hold duration, time between two key presses and time between release press
+    """
     key_hold_durations = []
     time_between_keys = []
     time_between_release_press = []
@@ -42,12 +53,25 @@ def calculate_key_durations(press_times, release_times):
 
 
 def create_table_mat(HD_list, PPD_list, RPD_list):
+    """
+    Creates the pandas data frame from the params.
+    :param HD_list: Hold duration of a key
+    :param PPD_list: Time between two presses
+    :param RPD_list: Time between release and next press
+    :return: Pandas data frame
+    """
     df = pd.DataFrame(list(zip(HD_list, RPD_list, PPD_list)),
                       columns=["HD-", "RPD-", "PPD-"])
     return df
 
 
 def arrange_index_df(df, key_list):
+    """
+    Makes the pandas data frame's index be the keys list.
+    :param df: Pandas data frame
+    :param key_list: The corresponding key list
+    :return: Pandas data frame with keys index
+    """
     df['keys'] = key_list[:len(df)]
     df = df.reset_index().set_index('keys')
     df = df.drop(columns=['index'])
@@ -55,6 +79,11 @@ def arrange_index_df(df, key_list):
 
 
 def get_user_initial_data(wanted_char_count):
+    """
+    Gets the user typing data by the param.
+    :param wanted_char_count: The wanted amount of chars to be measured
+    :return: Pandas data frame
+    """
     print("Write!")
     key_press_time, key_release_time, key_list = create_timing_lists(wanted_char_count)
     keyboard.read_event()  # clean the remaining key

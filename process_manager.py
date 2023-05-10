@@ -13,6 +13,12 @@ user_data = pd.DataFrame()
 
 
 def learn_user(ns, wanted_char_count):
+    """
+    A function built purely to record the user according to the char amount. RUNS CONSTANTLY.
+    :param ns: Manager name space
+    :param wanted_char_count: The wanted amount of chars to be added to the data base
+    :return: Dumps the new data base in "db.pkl"
+    """
     print("starting LEARNING")
     while 1:
         df = user.get_user_initial_data(wanted_char_count)
@@ -30,6 +36,11 @@ def learn_user(ns, wanted_char_count):
 
 
 def fit_ai(ns):
+    """
+    A function that fits the AI with the newest data base. RUNS CONSTANTLY.
+    :param ns: Manager name space
+    :return: Nothing
+    """
     print("starting FITTING")
     count = 1
     while 1:
@@ -40,6 +51,12 @@ def fit_ai(ns):
 
 
 def test_ai(ns, wanted_char_count):
+    """
+    A function to test the AI with the user's data. below a curtain number locks the computer. RUNS CONSTANTLY.
+    :param ns: Manager name space
+    :param wanted_char_count: The wanted amount of chars to be added to the data base
+    :return: Nothing
+    """
     print("starting TESTING")
     while 1:
         if ctypes.windll.user32.GetForegroundWindow() != 0:  # while not on lockscreen
@@ -48,17 +65,17 @@ def test_ai(ns, wanted_char_count):
                 acc = train_ai.get_accuracy(ns)
                 is_above_accuracy_value = acc <= wanted_acc_value
                 if not is_above_accuracy_value:
-                    turn_off(ns, wanted_char_count)
-
-
-def turn_off(ns, wanted_char_count):
-    ns.ud = pd.DataFrame()
-    ctypes.windll.user32.LockWorkStation()
-    cut_df(ns, wanted_char_count)
-    print("Turned OFF!")
+                    ctypes.windll.user32.LockWorkStation()
+                    cut_df(ns, wanted_char_count)
 
 
 def processes(ns, wanted_char_count):
+    """
+    The "mother function". In charge of initiating all the processes.
+    :param ns: Manager name space
+    :param wanted_char_count: The wanted amount of chars to be added to the data base
+    :return: Nothing
+    """
     fit_ai_process = Process(target=fit_ai, args=(ns,))
     record_user_data_process = Process(target=learn_user, args=(ns, wanted_char_count))
     test_ai_process = Process(target=test_ai, args=(ns, wanted_char_count))
