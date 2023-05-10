@@ -12,10 +12,10 @@ data_base = pickle.load(open('db.pkl', 'rb'))
 user_data = pd.DataFrame()
 
 
-def learn_user(ns):
+def learn_user(ns, wanted_char_count):
     print("starting LEARNING")
     while 1:
-        df = user.get_user_initial_data()
+        df = user.get_user_initial_data(wanted_char_count)
         ns.ud = df
         try:
             old_data = pickle.load(open('db.pkl', 'rb'))
@@ -30,74 +30,51 @@ def learn_user(ns):
 
 
 def fit_ai(ns):
-    # fits the ai with existing db
     print("starting FITTING")
-    train_ai.train(ns.db)
-    ns.ai = pickle.load(open('ai.pkl', 'rb'))
+    count = 1
+    while 1:
+        if len(ns.db) % 1000 == count:
+            train_ai.train(ns.db)
+            ns.ai = pickle.load(open('ai.pkl', 'rb'))
+            count += 1
 
 
-def test_ai(ns):
+def test_ai(ns, wanted_char_count):
     print("starting TESTING")
-    process = Process(target=fit_ai, args=(ns,))
     while 1:
         if ctypes.windll.user32.GetForegroundWindow() != 0:  # while not on lockscreen
-            accuracy_value = 0.6
+            wanted_acc_value = 0.6
             if not ns.ud.empty:
-                acc = get_accuracy(ns)
-                is_above_accuracy_value = accuracy_check(accuracy_value, acc)
+                acc = train_ai.get_accuracy(ns)
+                is_above_accuracy_value = acc <= wanted_acc_value
                 if not is_above_accuracy_value:
-                    turn_off(ns)
-                else:
-                    try:
-                        process.start()
-                        process.join()
-                    except AssertionError:
-                        pass
-            # predict -> acc_check
+                    turn_off(ns, wanted_char_count)
 
 
-def get_accuracy(ns):
-    X_train, X_test, = train_test_split(ns.ud, test_size=0.5, random_state=1)
-    y_predict = ns.ai.predict(X_test)
-    acc = accuracy_score([1] * len(X_test), y_predict)
-    return acc
-
-
-def accuracy_check(wanted_acc_value, acc):
-    if acc <= wanted_acc_value:
-        return False
-    return True
-    # bellow a number is fail
-
-
-def turn_off(ns):
+def turn_off(ns, wanted_char_count):
     ns.ud = pd.DataFrame()
     ctypes.windll.user32.LockWorkStation()
-    cut50(ns)
+    cut_df(ns, wanted_char_count)
     print("Turned OFF!")
 
 
-def cut50(ns):
-    df = pickle.load(open("db.pkl", "rb"))
-    df = df[:-50]
-    ns.db = df
-    pickle.dump(df, open("db.pkl", "wb"))
-
-
-def threads(ns):
-    record_user_data_process = Process(target=learn_user, args=(ns,))
-    test_ai_process = Process(target=test_ai, args=(ns,))
+def processes(ns, wanted_char_count):
+    fit_ai_process = Process(target=fit_ai, args=(ns,))
+    record_user_data_process = Process(target=learn_user, args=(ns, wanted_char_count))
+    test_ai_process = Process(target=test_ai, args=(ns, wanted_char_count))
     record_user_data_process.start()
     test_ai_process.start()
+    fit_ai_process.start()
+    fit_ai_process.join()
     record_user_data_process.join()
     test_ai_process.join()
-    # thread for - fitting, testing+acc_check, recording user
 
 
 if __name__ == '__main__':
+    char_count = 100
     mgr = Manager()
     name_space = mgr.Namespace()
     name_space.ai = pickled_model
     name_space.ud = user_data
     name_space.db = data_base
-    threads(name_space)
+    processes(name_space, char_count)

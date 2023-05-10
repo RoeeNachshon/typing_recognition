@@ -1,18 +1,17 @@
 from pynput import keyboard
 import pandas as pd
 import keyboard
-import numpy as np
 
 
-def create_timing_lists():
+def create_timing_lists(wanted_char_count):
     key_press_lst = []
     key_release_lst = []
     key_list = []
-    for i in range(110):
+    for i in range((wanted_char_count*2)+10):
         event = keyboard.read_event()
-        if event.event_type == "down" and len(key_press_lst) < 50:
+        if event.event_type == "down" and len(key_press_lst) < wanted_char_count:
             key_press_lst.append(event.time)
-        if event.event_type == "up" and len(key_release_lst) < 50:
+        if event.event_type == "up" and len(key_release_lst) < wanted_char_count:
             key_release_lst.append(event.time)
             key_list.append(event.name)
     return key_press_lst, key_release_lst, key_list
@@ -49,15 +48,15 @@ def create_table_mat(HD_list, PPD_list, RPD_list):
 
 
 def arrange_index_df(df, key_list):
-    df['keys'] = key_list
+    df['keys'] = key_list[:len(df)]
     df = df.reset_index().set_index('keys')
     df = df.drop(columns=['index'])
     return df
 
 
-def get_user_initial_data():
+def get_user_initial_data(wanted_char_count):
     print("Write!")
-    key_press_time, key_release_time, key_list = create_timing_lists()
+    key_press_time, key_release_time, key_list = create_timing_lists(wanted_char_count)
     keyboard.read_event()  # clean the remaining key
     HD_list, PPD_list, RPD_list = calculate_key_durations(key_press_time, key_release_time)
     data_frame = create_table_mat(HD_list, PPD_list, RPD_list)
