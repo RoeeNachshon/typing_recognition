@@ -4,7 +4,6 @@ import user
 import train_ai
 import ctypes
 from multiprocessing import Process, Manager
-from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 pickled_model = pickle.load(open('ai.pkl', 'rb'))  # what happens on first?
@@ -29,25 +28,25 @@ def learn_user(ns, wanted_char_count):
             ns.db = pd.concat(frames)
             if not ns.ud.empty:
                 pickle.dump(ns.db, open('db.pkl', 'wb'))
-                print("Renewed!")
         except FileNotFoundError:
             pickle.dump(df, open('db.pkl', 'wb'))
-            fit_ai(ns)
+            fit_ai(ns, wanted_char_count)
 
 
-def fit_ai(ns):
+def fit_ai(ns, wanted_char_count):
     """
     A function that fits the AI with the newest data base. RUNS CONSTANTLY.
+    :param wanted_char_count: Chars until the next fit
     :param ns: Manager name space
     :return: Nothing
     """
     print("starting FITTING")
-    count = 1
+    db_length = len(ns.db)
     while 1:
-        if len(ns.db) % 1000 == count:
+        if db_length + 2 * (wanted_char_count - 1) == len(ns.db):
             train_ai.train(ns.db)
             ns.ai = pickle.load(open('ai.pkl', 'rb'))
-            count += 1
+            db_length = len(ns.db)
 
 
 def test_ai(ns, wanted_char_count):
@@ -60,13 +59,15 @@ def test_ai(ns, wanted_char_count):
     print("starting TESTING")
     while 1:
         if ctypes.windll.user32.GetForegroundWindow() != 0:  # while not on lockscreen
-            wanted_acc_value = 0.6
+            wanted_acc_value = 0.3
             if not ns.ud.empty:
                 acc = train_ai.get_accuracy(ns)
-                is_above_accuracy_value = acc <= wanted_acc_value
+                is_above_accuracy_value = acc >= wanted_acc_value
                 if not is_above_accuracy_value:
+                    print(acc)
                     ctypes.windll.user32.LockWorkStation()
-                    cut_df(ns, wanted_char_count)
+                    ns.ud = pd.DataFrame()
+                    train_ai.cut_df(ns, wanted_char_count)
 
 
 def processes(ns, wanted_char_count):
@@ -76,7 +77,7 @@ def processes(ns, wanted_char_count):
     :param wanted_char_count: The wanted amount of chars to be added to the data base
     :return: Nothing
     """
-    fit_ai_process = Process(target=fit_ai, args=(ns,))
+    fit_ai_process = Process(target=fit_ai, args=(ns, wanted_char_count))
     record_user_data_process = Process(target=learn_user, args=(ns, wanted_char_count))
     test_ai_process = Process(target=test_ai, args=(ns, wanted_char_count))
     record_user_data_process.start()

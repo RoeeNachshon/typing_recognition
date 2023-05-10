@@ -1,6 +1,7 @@
 import pickle
 from sklearn.model_selection import train_test_split
 from sklearn.svm import OneClassSVM
+from sklearn.metrics import accuracy_score
 
 
 def train(data_base):
@@ -13,6 +14,7 @@ def train(data_base):
     clf = OneClassSVM(kernel='linear', nu=0.245)
     clf.fit(X_train)
     pickle.dump(clf, open('ai.pkl', 'wb'))
+    print("trained!")
     # evaluate the accuracy of the model
 
 
