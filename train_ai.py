@@ -11,7 +11,7 @@ def train(data_base):
     :return: Dumps the AI in "ai.pkl"
     """
     X_train, X_test, = train_test_split(data_base, test_size=0.25, random_state=1)
-    clf = OneClassSVM(kernel='linear', nu=0.245)
+    clf = OneClassSVM(kernel='rbf')
     clf.fit(X_train)
     pickle.dump(clf, open('ai.pkl', 'wb'))
     print("trained!")

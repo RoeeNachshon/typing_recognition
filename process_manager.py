@@ -59,7 +59,7 @@ def test_ai(ns, wanted_char_count):
     print("starting TESTING")
     while 1:
         if ctypes.windll.user32.GetForegroundWindow() != 0:  # while not on lockscreen
-            wanted_acc_value = 0.3
+            wanted_acc_value = 0.55
             if not ns.ud.empty:
                 acc = train_ai.get_accuracy(ns)
                 is_above_accuracy_value = acc >= wanted_acc_value
