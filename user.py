@@ -14,11 +14,11 @@ def create_timing_lists(wanted_char_count):
     key_list = []
     for i in range((wanted_char_count*2)+10):
         event = keyboard.read_event()
-        if event.event_type == "down" and len(key_press_lst) < wanted_char_count:
+        if event.event_type == "down" and len(key_press_lst) <= wanted_char_count:
             key_press_lst.append(event.time)
-        if event.event_type == "up" and len(key_release_lst) < wanted_char_count:
+        if event.event_type == "up" and len(key_release_lst) <= wanted_char_count:
             key_release_lst.append(event.time)
-            key_list.append(event.name)
+            key_list.append(event.scan_code)
     return key_press_lst, key_release_lst, key_list
 
 
@@ -52,29 +52,19 @@ def calculate_key_durations(press_times, release_times):
     return key_hold_durations, time_between_keys, time_between_release_press
 
 
-def create_table_mat(HD_list, PPD_list, RPD_list):
+def create_table_mat(key_list, HD_list, PPD_list, RPD_list):
     """
     Creates the pandas data frame from the params.
+    :param key_list: List of the keys pressed
     :param HD_list: Hold duration of a key
     :param PPD_list: Time between two presses
     :param RPD_list: Time between release and next press
     :return: Pandas data frame
     """
-    df = pd.DataFrame(list(zip(HD_list, RPD_list, PPD_list)),
-                      columns=["HD-", "RPD-", "PPD-"])
-    return df
-
-
-def arrange_index_df(df, key_list):
-    """
-    Makes the pandas data frame's index be the keys list.
-    :param df: Pandas data frame
-    :param key_list: The corresponding key list
-    :return: Pandas data frame with keys index
-    """
-    df['keys'] = key_list[:len(df)]
-    df = df.reset_index().set_index('keys')
-    df = df.drop(columns=['index'])
+    last_key = [-1]
+    last_key.extend(key_list)
+    df = pd.DataFrame(list(zip(last_key, key_list, HD_list, RPD_list, PPD_list)),
+                      columns=["Last key-", "Current key-", "HD-", "RPD-", "PPD-"])
     return df
 
 
@@ -86,9 +76,7 @@ def get_user_initial_data(wanted_char_count):
     """
     print("Write!")
     key_press_time, key_release_time, key_list = create_timing_lists(wanted_char_count)
-    keyboard.read_event()  # clean the remaining key
     HD_list, PPD_list, RPD_list = calculate_key_durations(key_press_time, key_release_time)
-    data_frame = create_table_mat(HD_list, PPD_list, RPD_list)
-    data_frame = arrange_index_df(data_frame, key_list)
+    data_frame = create_table_mat(key_list, HD_list, PPD_list, RPD_list)
     return data_frame
 

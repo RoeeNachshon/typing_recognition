@@ -6,8 +6,14 @@ import ctypes
 from multiprocessing import Process, Manager
 from sklearn.model_selection import train_test_split
 
-pickled_model = pickle.load(open('ai.pkl', 'rb'))  # what happens on first?
-data_base = pickle.load(open('db.pkl', 'rb'))
+try:
+    pickled_model = pickle.load(open('ai.pkl', 'rb'))  # what happens on first?
+    data_base = pickle.load(open('db.pkl', 'rb'))
+except FileNotFoundError:
+    data_base = user.get_user_initial_data(100)
+    pickle.dump(data_base, open('db.pkl', 'wb'))
+    pickled_model = train_ai.train(data_base)
+    pickle.dump(pickled_model, open('ai.pkl', 'wb'))
 user_data = pd.DataFrame()
 
 
@@ -22,15 +28,11 @@ def learn_user(ns, wanted_char_count):
     while 1:
         df = user.get_user_initial_data(wanted_char_count)
         ns.ud = df
-        try:
-            old_data = pickle.load(open('db.pkl', 'rb'))
-            frames = [old_data, df]
-            ns.db = pd.concat(frames)
-            if not ns.ud.empty:
-                pickle.dump(ns.db, open('db.pkl', 'wb'))
-        except FileNotFoundError:
-            pickle.dump(df, open('db.pkl', 'wb'))
-            fit_ai(ns, wanted_char_count)
+        old_data = pickle.load(open('db.pkl', 'rb'))
+        frames = [old_data, df]
+        ns.db = pd.concat(frames)
+        if not ns.ud.empty:
+            pickle.dump(ns.db, open('db.pkl', 'wb'))
 
 
 def fit_ai(ns, wanted_char_count):
@@ -65,9 +67,9 @@ def test_ai(ns, wanted_char_count):
                 is_above_accuracy_value = acc >= wanted_acc_value
                 if not is_above_accuracy_value:
                     print(acc)
-                    ctypes.windll.user32.LockWorkStation()
-                    ns.ud = pd.DataFrame()
-                    train_ai.cut_df(ns, wanted_char_count)
+                    #ctypes.windll.user32.LockWorkStation()
+                    #ns.ud = pd.DataFrame()
+                    #train_ai.cut_df(ns, wanted_char_count)
 
 
 def processes(ns, wanted_char_count):
@@ -89,7 +91,7 @@ def processes(ns, wanted_char_count):
 
 
 if __name__ == '__main__':
-    char_count = 100
+    char_count = 1000
     mgr = Manager()
     name_space = mgr.Namespace()
     name_space.ai = pickled_model
