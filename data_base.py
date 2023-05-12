@@ -7,18 +7,16 @@ import time
 import pandas as pd
 import train_ai
 
-df = pickle.load(open("db.pkl","rb"))
-pickle.dump(df, open('plan_b_DB.pkl', 'wb'))
-ai = pickle.load(open("ai.pkl", "rb"))
+df = pickle.load(open("db.pkl", "rb"))
+y = pd.DataFrame()
+y["before"] = df["Last key-"]
+y["current"] = df["Current key-"]
+
+print(y)
+
+
 X_train, X_test, = train_test_split(df, test_size=0.25, random_state=1)
-y_predict = ai.predict(X_test)
-acc = accuracy_score([1] * len(X_test), y_predict)
-print(acc)
-
-"""db = pickle.load(open("db.pkl","rb"))
-
-X_train, X_test, = train_test_split(db, test_size=0.25, random_state=1)
 clf = OneClassSVM(kernel='rbf')
-clf.fit(X_train)
-pickle.dump(clf, open('ai.pkl', 'wb'))"""
-
+clf.fit(X_train,y)
+pickle.dump(clf, open('ai.pkl', 'wb'))
+print("trained!")

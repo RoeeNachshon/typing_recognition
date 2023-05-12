@@ -13,7 +13,7 @@ def train(data_base):
     X_train, X_test, = train_test_split(data_base, test_size=0.25, random_state=1)
     clf = OneClassSVM(kernel='rbf')
     clf.fit(X_train)
-    pickle.dump(clf, open('ai.pkl', 'wb'))
+    pickle.dump(clf, open("ai.pkl", "wb"))
     print("trained!")
     # evaluate the accuracy of the model
 

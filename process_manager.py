@@ -13,7 +13,6 @@ except FileNotFoundError:
     data_base = user.get_user_initial_data(100)
     pickle.dump(data_base, open('db.pkl', 'wb'))
     pickled_model = train_ai.train(data_base)
-    pickle.dump(pickled_model, open('ai.pkl', 'wb'))
 user_data = pd.DataFrame()
 
 
