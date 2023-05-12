@@ -10,7 +10,7 @@ try:
     pickled_model = pickle.load(open('ai.pkl', 'rb'))  # what happens on first?
     data_base = pickle.load(open('db.pkl', 'rb'))
 except FileNotFoundError:
-    data_base = user.get_user_initial_data(100)
+    data_base = user.get_user_initial_data(100, 0)
     pickle.dump(data_base, open('db.pkl', 'wb'))
     pickled_model = train_ai.train(data_base)
 user_data = pd.DataFrame()
@@ -26,7 +26,9 @@ def learn_user(ns, wanted_char_count):
     print("starting LEARNING")
     while 1:
         test_ai_process = Process(target=test_ai, args=(ns, wanted_char_count))
-        df = user.get_user_initial_data(wanted_char_count)
+        batches = list(ns.db.index.values.tolist())
+        print(batches[-1])
+        df = user.get_user_initial_data(wanted_char_count, batches[-1])
         ns.ud = df
         old_data = pickle.load(open('db.pkl', 'rb'))
         frames = [old_data, df]
@@ -47,7 +49,7 @@ def fit_ai(ns, wanted_char_count):
     print("starting FITTING")
     db_length = len(ns.db)
     while 1:
-        if db_length + 2 * (wanted_char_count - 1) == len(ns.db):
+        if db_length + (2 * (wanted_char_count - 1)) == len(ns.db):
             train_ai.train(ns.db)
             ns.ai = pickle.load(open('ai.pkl', 'rb'))
             db_length = len(ns.db)
@@ -62,13 +64,14 @@ def test_ai(ns, wanted_char_count):
     """
     print("starting TESTING")
     if ctypes.windll.user32.GetForegroundWindow() != 0:  # while not on lockscreen
-        wanted_acc_value = 0.8
+        wanted_acc_value = 0.85
         acc = train_ai.get_accuracy(ns)
         is_above_accuracy_value = acc >= wanted_acc_value
         if not is_above_accuracy_value:
             #ctypes.windll.user32.LockWorkStation()
-            ns.ud = pd.DataFrame()
-            train_ai.cut_df(ns, wanted_char_count)
+            #ns.ud = pd.DataFrame()
+            #train_ai.cut_df(ns, wanted_char_count)
+            print("failed")
 
 
 def processes(ns, wanted_char_count):

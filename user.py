@@ -68,9 +68,17 @@ def create_table_mat(key_list, HD_list, PPD_list, RPD_list):
     return df
 
 
-def get_user_initial_data(wanted_char_count):
+def index_correction(df, last_batch_number):
+    lst = [last_batch_number+1]*len(df)
+    df["index"] = lst
+    df.set_index("index", inplace=True, drop=True)
+    return df
+
+
+def get_user_initial_data(wanted_char_count, last_batch_number):
     """
     Gets the user typing data by the param.
+    :param last_batch_number: The last number of the last batch in the DB
     :param wanted_char_count: The wanted amount of chars to be measured
     :return: Pandas data frame
     """
@@ -78,5 +86,5 @@ def get_user_initial_data(wanted_char_count):
     key_press_time, key_release_time, key_list = create_timing_lists(wanted_char_count)
     HD_list, PPD_list, RPD_list = calculate_key_durations(key_press_time, key_release_time)
     data_frame = create_table_mat(key_list, HD_list, PPD_list, RPD_list)
+    data_frame = index_correction(data_frame, last_batch_number)
     return data_frame
-
