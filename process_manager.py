@@ -60,7 +60,7 @@ def test_ai(ns, wanted_char_count):
     print("starting TESTING")
     while 1:
         if ctypes.windll.user32.GetForegroundWindow() != 0:  # while not on lockscreen
-            wanted_acc_value = 0.55
+            wanted_acc_value = 0.8
             if not ns.ud.empty:
                 acc = train_ai.get_accuracy(ns)
                 is_above_accuracy_value = acc >= wanted_acc_value
@@ -90,7 +90,7 @@ def processes(ns, wanted_char_count):
 
 
 if __name__ == '__main__':
-    char_count = 1000
+    char_count = 100
     mgr = Manager()
     name_space = mgr.Namespace()
     name_space.ai = pickled_model

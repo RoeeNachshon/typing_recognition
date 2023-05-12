@@ -24,9 +24,8 @@ def get_accuracy(ns):
     :param ns: Manager name space
     :return: A number of the AI's accuracy
     """
-    X_train, X_test, = train_test_split(ns.ud, test_size=0.5, random_state=1)
-    y_predict = ns.ai.predict(X_test)
-    acc = accuracy_score([1] * len(X_test), y_predict)
+    y_predict = ns.ai.predict(ns.ud)
+    acc = accuracy_score([1] * len(y_predict), y_predict)
     return acc
 
 
