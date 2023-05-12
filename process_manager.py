@@ -25,11 +25,14 @@ def learn_user(ns, wanted_char_count):
     """
     print("starting LEARNING")
     while 1:
+        test_ai_process = Process(target=test_ai, args=(ns, wanted_char_count))
         df = user.get_user_initial_data(wanted_char_count)
         ns.ud = df
         old_data = pickle.load(open('db.pkl', 'rb'))
         frames = [old_data, df]
         ns.db = pd.concat(frames)
+        test_ai_process.start()
+        test_ai_process.join()
         if not ns.ud.empty:
             pickle.dump(ns.db, open('db.pkl', 'wb'))
 
@@ -58,17 +61,14 @@ def test_ai(ns, wanted_char_count):
     :return: Nothing
     """
     print("starting TESTING")
-    while 1:
-        if ctypes.windll.user32.GetForegroundWindow() != 0:  # while not on lockscreen
-            wanted_acc_value = 0.8
-            if not ns.ud.empty:
-                acc = train_ai.get_accuracy(ns)
-                is_above_accuracy_value = acc >= wanted_acc_value
-                if not is_above_accuracy_value:
-                    print(acc)
-                    #ctypes.windll.user32.LockWorkStation()
-                    #ns.ud = pd.DataFrame()
-                    #train_ai.cut_df(ns, wanted_char_count)
+    if ctypes.windll.user32.GetForegroundWindow() != 0:  # while not on lockscreen
+        wanted_acc_value = 0.8
+        acc = train_ai.get_accuracy(ns)
+        is_above_accuracy_value = acc >= wanted_acc_value
+        if not is_above_accuracy_value:
+            #ctypes.windll.user32.LockWorkStation()
+            ns.ud = pd.DataFrame()
+            train_ai.cut_df(ns, wanted_char_count)
 
 
 def processes(ns, wanted_char_count):
@@ -80,13 +80,10 @@ def processes(ns, wanted_char_count):
     """
     fit_ai_process = Process(target=fit_ai, args=(ns, wanted_char_count))
     record_user_data_process = Process(target=learn_user, args=(ns, wanted_char_count))
-    test_ai_process = Process(target=test_ai, args=(ns, wanted_char_count))
     record_user_data_process.start()
-    test_ai_process.start()
     fit_ai_process.start()
     fit_ai_process.join()
     record_user_data_process.join()
-    test_ai_process.join()
 
 
 if __name__ == '__main__':

@@ -25,7 +25,9 @@ def get_accuracy(ns):
     :return: A number of the AI's accuracy
     """
     y_predict = ns.ai.predict(ns.ud)
+
     acc = accuracy_score([1] * len(y_predict), y_predict)
+    print(acc)
     return acc
 
 
