@@ -69,8 +69,8 @@ def test_ai(ns, wanted_char_count):
         is_above_accuracy_value = acc >= wanted_acc_value
         if not is_above_accuracy_value:
             #ctypes.windll.user32.LockWorkStation()
-            #ns.ud = pd.DataFrame()
-            #train_ai.cut_df(ns, wanted_char_count)
+            ns.ud = pd.DataFrame()
+            train_ai.cut_df(ns, wanted_char_count)
             print("failed")
 
 
