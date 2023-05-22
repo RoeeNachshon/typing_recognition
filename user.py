@@ -1,6 +1,8 @@
-from pynput import keyboard
-import pandas as pd
 import keyboard
+import pandas as pd
+import pickle
+
+import sys
 
 
 def create_timing_lists(wanted_char_count):
@@ -12,7 +14,7 @@ def create_timing_lists(wanted_char_count):
     key_press_lst = []
     key_release_lst = []
     key_list = []
-    for i in range((wanted_char_count*2)+10):
+    for i in range((wanted_char_count * 2) + 10):
         event = keyboard.read_event()
         if event.event_type == "down" and len(key_press_lst) <= wanted_char_count:
             key_press_lst.append(event.time)
@@ -52,39 +54,41 @@ def calculate_key_durations(press_times, release_times):
     return key_hold_durations, time_between_keys, time_between_release_press
 
 
-def create_table_mat(key_list, HD_list, PPD_list, RPD_list):
+def create_table_mat(key_list, hd_list, ppd_list, rpd_list):
     """
     Creates the pandas data frame from the params.
     :param key_list: List of the keys pressed
-    :param HD_list: Hold duration of a key
-    :param PPD_list: Time between two presses
-    :param RPD_list: Time between release and next press
+    :param hd_list: Hold duration of a key
+    :param ppd_list: Time between two presses
+    :param rpd_list: Time between release and next press
     :return: Pandas data frame
     """
     last_key = [-1]
     last_key.extend(key_list)
-    df = pd.DataFrame(list(zip(last_key, key_list, HD_list, RPD_list, PPD_list)),
+    df = pd.DataFrame(list(zip(last_key, key_list, hd_list, rpd_list, ppd_list)),
                       columns=["Last key-", "Current key-", "HD-", "RPD-", "PPD-"])
     return df
 
 
-def index_correction(df, last_batch_number):
-    lst = [last_batch_number+1]*len(df)
+"""def index_correction(df, last_batch_number):
+    lst = [last_batch_number + 1] * len(df)
     df["index"] = lst
     df.set_index("index", inplace=True, drop=True)
-    return df
+    return df"""
 
 
-def get_user_initial_data(wanted_char_count, last_batch_number):
+def record(wanted_char_count):
     """
     Gets the user typing data by the param.
-    :param last_batch_number: The last number of the last batch in the DB
     :param wanted_char_count: The wanted amount of chars to be measured
     :return: Pandas data frame
     """
-    print("Write!")
     key_press_time, key_release_time, key_list = create_timing_lists(wanted_char_count)
-    HD_list, PPD_list, RPD_list = calculate_key_durations(key_press_time, key_release_time)
-    data_frame = create_table_mat(key_list, HD_list, PPD_list, RPD_list)
-    data_frame = index_correction(data_frame, last_batch_number)
+    hd_list, ppd_list, rpd_list = calculate_key_durations(key_press_time, key_release_time)
+    data_frame = create_table_mat(key_list, hd_list, ppd_list, rpd_list)
     return data_frame
+
+
+df = record(100)
+pickle.dump(df, open("oded.pkl","wb"))
+print("in!")
