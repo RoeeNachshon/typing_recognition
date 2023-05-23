@@ -1,7 +1,6 @@
 import keyboard
 import pandas as pd
 import pickle
-import sys
 
 
 def create_timing_lists(wanted_char_count):
@@ -17,7 +16,7 @@ def create_timing_lists(wanted_char_count):
         event = keyboard.read_event()
         if event.event_type == "down" and len(key_press_lst) <= wanted_char_count:
             key_press_lst.append(event.time)
-        if event.event_type == "up" and len(key_release_lst) <= wanted_char_count:
+        elif event.event_type == "up" and len(key_release_lst) <= wanted_char_count:
             key_release_lst.append(event.time)
             key_list.append(event.scan_code)
     return key_press_lst, key_release_lst, key_list
@@ -28,34 +27,31 @@ def calculate_key_durations(press_times, release_times):
     Calculates the times durations keyboard of events into three lists.
     :param press_times: A list of time of the keys press times
     :param release_times: A list of time of the keys release times
-    :return: Lists of hold duration, time between two key presses and time between release press
+    :return: Lists of hold duration, time between two key presses, and time between release press
     """
-    key_hold_durations = []
-    time_between_keys = []
-    time_between_release_press = []
+    if len(release_times) == len(press_times):
+        key_hold_durations = get_keys_hold_times(press_times, release_times)
+        time_between_keys = get_keys_press2press_times(press_times)
+        time_between_release_press = get_keys_release_press_times(press_times, release_times)
+        return key_hold_durations, time_between_keys, time_between_release_press
 
-    # Check that both lists have the same length
-    if not lengths_check(press_times, release_times):
-        print("Error: press_times and release_times must have the same length.", len(release_times), len(press_times))
-        return [], [], []
-
-    for i in range(len(press_times)):
-
-        key_hold_durations.append(round((release_times[i] - press_times[i]), 3) * 1000)
-
-        if i > 0:
-            time_between_keys.append(round((press_times[i] - press_times[i - 1]), 3) * 1000)
-        if i < len(press_times) - 1:
-            time_between_release_press.append(round((press_times[i + 1] - release_times[i]), 3) * 1000)
-
-    return key_hold_durations, time_between_keys, time_between_release_press
+    print("Error: press_times and release_times must have the same length.", len(release_times), len(press_times))
+    return [], [], []
 
 
-def lengths_check(press_times, release_times):
-    return len(press_times) == len(release_times)
+def get_keys_release_press_times(press_times, release_times):
+    return [round((press_times[i + 1] - release_times[i]), 3) * 1000 for i in range(len(press_times) - 1)]
 
 
-def create_table_mat(key_list, hd_list, ppd_list, rpd_list):
+def get_keys_press2press_times(press_times):
+    return [round((press_times[i] - press_times[i - 1]), 3) * 1000 for i in range(1, len(press_times))]
+
+
+def get_keys_hold_times(press_times, release_times):
+    return [round((release_times[i] - press_times[i]), 3) * 1000 for i in range(len(press_times))]
+
+
+def create_pandas_dataframe(key_list, hd_list, ppd_list, rpd_list):
     """
     Creates the pandas data frame from the params.
     :param key_list: List of the keys pressed
@@ -77,8 +73,9 @@ def record(wanted_char_count):
     :param wanted_char_count: The wanted amount of chars to be measured
     :return: Pandas data frame
     """
-    key_press_time, key_release_time, key_list = create_timing_lists(wanted_char_count)
-    hold_durations, press_press_durations, release_press_durations = calculate_key_durations(key_press_time,
-                                                                                             key_release_time)
-    data_frame = create_table_mat(key_list, hold_durations, press_press_durations, release_press_durations)
+    print("record")
+    key_press_times, key_release_times, keys_list = create_timing_lists(wanted_char_count)
+    hold_durations, press_press_durations, release_press_durations = calculate_key_durations(key_press_times,
+                                                                                             key_release_times)
+    data_frame = create_pandas_dataframe(keys_list, hold_durations, press_press_durations, release_press_durations)
     return data_frame
