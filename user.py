@@ -1,7 +1,6 @@
 import keyboard
 import pandas as pd
 import pickle
-
 import sys
 
 
@@ -36,22 +35,24 @@ def calculate_key_durations(press_times, release_times):
     time_between_release_press = []
 
     # Check that both lists have the same length
-    if len(press_times) != len(release_times):
+    if not lengths_check(press_times, release_times):
         print("Error: press_times and release_times must have the same length.", len(release_times), len(press_times))
         return [], [], []
 
     for i in range(len(press_times)):
-        press_time = press_times[i]
-        release_time = release_times[i]
-        key_hold_duration = round((release_time - press_time), 3) * 1000
-        key_hold_durations.append(key_hold_duration)
+
+        key_hold_durations.append(round((release_times[i] - press_times[i]), 3) * 1000)
 
         if i > 0:
-            time_between_keys.append(round((press_time - press_times[i - 1]), 3) * 1000)
+            time_between_keys.append(round((press_times[i] - press_times[i - 1]), 3) * 1000)
         if i < len(press_times) - 1:
-            time_between_release_press.append(round((press_times[i + 1] - release_time), 3) * 1000)
+            time_between_release_press.append(round((press_times[i + 1] - release_times[i]), 3) * 1000)
 
     return key_hold_durations, time_between_keys, time_between_release_press
+
+
+def lengths_check(press_times, release_times):
+    return len(press_times) == len(release_times)
 
 
 def create_table_mat(key_list, hd_list, ppd_list, rpd_list):
@@ -59,22 +60,15 @@ def create_table_mat(key_list, hd_list, ppd_list, rpd_list):
     Creates the pandas data frame from the params.
     :param key_list: List of the keys pressed
     :param hd_list: Hold duration of a key
-    :param ppd_list: Time between two presses
     :param rpd_list: Time between release and next press
+    :param ppd_list: Time between two presses
     :return: Pandas data frame
     """
     last_key = [-1]
     last_key.extend(key_list)
-    df = pd.DataFrame(list(zip(last_key, key_list, hd_list, rpd_list, ppd_list)),
-                      columns=["Last key-", "Current key-", "HD-", "RPD-", "PPD-"])
-    return df
-
-
-"""def index_correction(df, last_batch_number):
-    lst = [last_batch_number + 1] * len(df)
-    df["index"] = lst
-    df.set_index("index", inplace=True, drop=True)
-    return df"""
+    dataframe = pd.DataFrame(list(zip(last_key, key_list, hd_list, rpd_list, ppd_list)),
+                             columns=["Last key-", "Current key-", "HD-", "RPD-", "PPD-"])
+    return dataframe
 
 
 def record(wanted_char_count):
@@ -84,11 +78,7 @@ def record(wanted_char_count):
     :return: Pandas data frame
     """
     key_press_time, key_release_time, key_list = create_timing_lists(wanted_char_count)
-    hd_list, ppd_list, rpd_list = calculate_key_durations(key_press_time, key_release_time)
-    data_frame = create_table_mat(key_list, hd_list, ppd_list, rpd_list)
+    hold_durations, press_press_durations, release_press_durations = calculate_key_durations(key_press_time,
+                                                                                             key_release_time)
+    data_frame = create_table_mat(key_list, hold_durations, press_press_durations, release_press_durations)
     return data_frame
-
-
-df = record(100)
-pickle.dump(df, open("oded.pkl","wb"))
-print("in!")

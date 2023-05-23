@@ -34,6 +34,7 @@ def main():
     print("analyzing ...")
     while True:
         user_data = user.record(CHAR_COUNT)
+        print("\n")
         is_user = validate(user_data)
         print(is_user)
 
