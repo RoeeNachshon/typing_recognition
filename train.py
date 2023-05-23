@@ -18,9 +18,7 @@ def train(data_base: object) -> object:
     :param data_base: The data to train the AI on
     :return: Dumps the AI in "ai.pkl"
     """
-    x_train, _, = train_test_split(data_base, test_size=0.25, random_state=1)
-    model = OneClassSVM(kernel='rbf')
-    model.fit(x_train)
+    model = OneClassSVM(gamma='auto').fit(data_base.values)
 
     return model
 
