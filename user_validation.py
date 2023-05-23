@@ -1,6 +1,6 @@
 import pickle
 from sklearn.metrics import accuracy_score
-import user
+import user_dataframe
 
 CHAR_COUNT = 100
 ACCURACY_THRESHOLD = 0.85
