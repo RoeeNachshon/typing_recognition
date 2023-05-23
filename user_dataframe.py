@@ -1,7 +1,7 @@
 import keyboard
 import pandas as pd
 import pickle
-
+from sklearn.preprocessing import OneHotEncoder
 
 def create_timing_lists(wanted_char_count):
     """
@@ -60,7 +60,7 @@ def create_pandas_dataframe(key_list, hd_list, ppd_list, rpd_list):
     :param ppd_list: Time between two presses
     :return: Pandas data frame
     """
-    last_key = [-1]
+    last_key = [None]
     last_key.extend(key_list)
     dataframe = pd.DataFrame(list(zip(last_key, key_list, hd_list, rpd_list, ppd_list)),
                              columns=["Last key-", "Current key-", "HD-", "RPD-", "PPD-"])
@@ -79,7 +79,7 @@ def norm_values(df_to_norm):
     return df_to_norm
 
 
-def get_enc():
+def get_enc(df):
     enc = OneHotEncoder(handle_unknown='ignore')
     enc.fit(df[['Last key-', "Current key-"]])
     return enc
@@ -92,7 +92,7 @@ def encode_features(df_, ohe_enc):
 
 
 def norm_dataframe(df):
-    enc = get_enc()
+    enc = get_enc(df)
     df = norm_values(df)
     features = encode_features(df, enc)
     return features
