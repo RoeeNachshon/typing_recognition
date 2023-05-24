@@ -2,12 +2,14 @@ import pandas as pd
 import pickle
 from sklearn.svm import OneClassSVM
 import user_dataframe
-df = pickle.load(open("oded.pkl", "rb"))
-print("\n", df)
+df = pickle.load(open("plan3_db.pkl", "rb"))
 #df = user_dataframe.record(100)
-ai = pickle.load(open("ai.pkl", "rb"))
-df = user_dataframe.norm_dataframe(df)
 print("\n", df)
-ocsvm_scores_test = ai.score_samples(df.values)
+ai = pickle.load(open("ai.pkl", "rb"))
+ocsvm_scores_test = ai.predict(df.values)
+count = 0
+for val in ocsvm_scores_test:
+    if val ==1:
+        count +=1
 
-print(ocsvm_scores_test.mean())
+print(count/2500)  # 1318.9900402133333 //-0.0007407407407407407

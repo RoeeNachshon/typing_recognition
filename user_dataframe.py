@@ -2,6 +2,8 @@ import keyboard
 import pandas as pd
 import pickle
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import make_column_transformer
+
 
 def create_timing_lists(wanted_char_count):
     """
@@ -31,39 +33,33 @@ def calculate_key_durations(press_times, release_times):
     """
     if len(release_times) == len(press_times):
         key_hold_durations = get_keys_hold_times(press_times, release_times)
-        time_between_keys = get_keys_press2press_times(press_times)
         time_between_release_press = get_keys_release_press_times(press_times, release_times)
-        return key_hold_durations, time_between_keys, time_between_release_press
+        return key_hold_durations, time_between_release_press
 
     print("Error: press_times and release_times must have the same length.", len(release_times), len(press_times))
-    return [], [], []
+    return [], []
 
 
 def get_keys_release_press_times(press_times, release_times):
     return [round((press_times[i + 1] - release_times[i]), 3) * 1000 for i in range(len(press_times) - 1)]
 
 
-def get_keys_press2press_times(press_times):
-    return [round((press_times[i] - press_times[i - 1]), 3) * 1000 for i in range(1, len(press_times))]
-
-
 def get_keys_hold_times(press_times, release_times):
     return [round((release_times[i] - press_times[i]), 3) * 1000 for i in range(len(press_times))]
 
 
-def create_pandas_dataframe(key_list, hd_list, ppd_list, rpd_list):
+def create_pandas_dataframe(key_list, hd_list, rpd_list):
     """
     Creates the pandas data frame from the params.
     :param key_list: List of the keys pressed
     :param hd_list: Hold duration of a key
     :param rpd_list: Time between release and next press
-    :param ppd_list: Time between two presses
     :return: Pandas data frame
     """
     last_key = [None]
     last_key.extend(key_list)
-    dataframe = pd.DataFrame(list(zip(last_key, key_list, hd_list, rpd_list, ppd_list)),
-                             columns=["Last key-", "Current key-", "HD-", "RPD-", "PPD-"])
+    dataframe = pd.DataFrame(list(zip(last_key, key_list, hd_list, rpd_list)),
+                             columns=["Last key-", "Current key-", "HD-", "RPD-"])
     return dataframe
 
 
@@ -81,8 +77,7 @@ def norm_values(df_to_norm):
 
 def get_enc(df):
     cat = get_categories()
-    enc = OneHotEncoder(handle_unknown='ignore', categories=cat)
-    enc.fit(df[['Last key-', "Current key-"]])
+    enc = OneHotEncoder(handle_unknown='ignore', sparse_output=False, categories=[x[1] for x in cat])
     return enc
 
 
@@ -90,34 +85,28 @@ def get_categories():
     temp = []
     for i in range(1, 83):
         temp.append(str(i))
-    return [temp, temp]
+    return [('Last key-', temp),
+            ('Current key-', temp)]
 
 
 def encode_features(df, ohe_enc):
-    transformer = make_column_transformer((ohe_enc, ['Last key-', "Current key-"]), remainder='passthrough')
-    transformed = transformer.fit_transform(pickle.load(open("oded.pkl", "wb")))
-    """keys_features_np = ohe_enc.transform(df_[['Last key-', "Current key-"]]).toarray()
-    keys_features_df = pd.DataFrame(keys_features_np, columns=ohe_enc.get_feature_names_out())"""
-    print_all(df, transformer, transformed)
+    cat = get_categories()
+    transformer = make_column_transformer((ohe_enc, [x[0] for x in cat]), remainder='passthrough')
+    transformed = transformer.fit_transform(df)
+    df = pd.DataFrame(transformed, columns=transformer.get_feature_names_out(), index=df.index)
+    return df
 
-
-def print_all(df, transformer, transformed):
-    display(pd.DataFrame(
-        transformed,
-        columns=transformer.get_feature_names_out(),
-        index=df.index
-    ))
-    pd.DataFrame(
-        transformer.transform(df),
-        columns=transformer.get_feature_names_out(),
-        index=df.index
-    )
 
 def norm_dataframe(df):
     enc = get_enc(df)
     df = norm_values(df)
-    encode_features(df, enc)
-    return features
+    df = encode_features(df, enc)
+    df = remove_columns(df)
+    return df
+
+
+def remove_columns(df):
+    return df.drop(["remainder__HD-", "remainder__RPD-"], axis=1)
 
 
 def record(wanted_char_count):
@@ -128,10 +117,7 @@ def record(wanted_char_count):
     """
     print("record")
     key_press_times, key_release_times, keys_list = create_timing_lists(wanted_char_count)
-    hold_durations, press_press_durations, release_press_durations = calculate_key_durations(key_press_times,
-                                                                                             key_release_times)
-    data_frame = create_pandas_dataframe(keys_list, hold_durations, press_press_durations, release_press_durations)
-    print(data_frame)
+    hold_durations, release_press_durations = calculate_key_durations(key_press_times, key_release_times)
+    data_frame = create_pandas_dataframe(keys_list, hold_durations, release_press_durations)
     data_frame = norm_dataframe(data_frame)
-
     return data_frame

@@ -3,7 +3,7 @@ from sklearn.metrics import accuracy_score
 import user_dataframe
 
 CHAR_COUNT = 100
-ACCURACY_THRESHOLD = 0.85
+ACCURACY_THRESHOLD = 4
 
 
 def load_pickle_file(path: str) -> object:
@@ -24,10 +24,7 @@ def get_accuracy(user_data) -> float:
     :return: A number of the AI's accuracy
     """
     model = load_pickle_file("ai.pkl")
-    y_predict = model.predict(user_data)
-    acc = accuracy_score([1] * len(y_predict), y_predict)
-    print(acc)
-    return acc
+    return model.score_samples(user_data.values)
 
 
 def main():
