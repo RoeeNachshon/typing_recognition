@@ -80,21 +80,43 @@ def norm_values(df_to_norm):
 
 
 def get_enc(df):
-    enc = OneHotEncoder(handle_unknown='ignore')
+    cat = get_categories()
+    enc = OneHotEncoder(handle_unknown='ignore', categories=cat)
     enc.fit(df[['Last key-', "Current key-"]])
     return enc
 
 
-def encode_features(df_, ohe_enc):
-    keys_features_np = ohe_enc.transform(df_[['Last key-', "Current key-"]]).toarray()
-    keys_features_df = pd.DataFrame(keys_features_np, columns=ohe_enc.get_feature_names_out())
-    return pd.concat([df_[["HD-norm", "RPD-norm"]].reset_index(drop=True), keys_features_df], axis=1)
+def get_categories():
+    temp = []
+    for i in range(1, 83):
+        temp.append(str(i))
+    return [temp, temp]
 
+
+def encode_features(df, ohe_enc):
+    transformer = make_column_transformer((ohe_enc, ['Last key-', "Current key-"]), remainder='passthrough')
+    transformed = transformer.fit_transform(pickle.load(open("oded.pkl", "wb")))
+    """keys_features_np = ohe_enc.transform(df_[['Last key-', "Current key-"]]).toarray()
+    keys_features_df = pd.DataFrame(keys_features_np, columns=ohe_enc.get_feature_names_out())"""
+    print_all(df, transformer, transformed)
+
+
+def print_all(df, transformer, transformed):
+    display(pd.DataFrame(
+        transformed,
+        columns=transformer.get_feature_names_out(),
+        index=df.index
+    ))
+    pd.DataFrame(
+        transformer.transform(df),
+        columns=transformer.get_feature_names_out(),
+        index=df.index
+    )
 
 def norm_dataframe(df):
     enc = get_enc(df)
     df = norm_values(df)
-    features = encode_features(df, enc)
+    encode_features(df, enc)
     return features
 
 
@@ -109,5 +131,7 @@ def record(wanted_char_count):
     hold_durations, press_press_durations, release_press_durations = calculate_key_durations(key_press_times,
                                                                                              key_release_times)
     data_frame = create_pandas_dataframe(keys_list, hold_durations, press_press_durations, release_press_durations)
+    print(data_frame)
     data_frame = norm_dataframe(data_frame)
+
     return data_frame
