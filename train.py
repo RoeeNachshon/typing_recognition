@@ -24,7 +24,7 @@ def train(data_base: object) -> object:
 
 
 def main():
-    data = load_training_data("plan3_db.pkl")
+    data = load_training_data("plan_b_DB_mult2.pkl")
 
     model = train(data)
 
